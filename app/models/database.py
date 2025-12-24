@@ -152,4 +152,11 @@ def get_db():
 
 def init_db():
     """初始化数据库"""
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        # 在Vercel等无服务器环境中，SQLite可能无法写入
+        # 如果使用PostgreSQL，需要配置DATABASE_URL环境变量
+        print(f"数据库初始化警告: {str(e)}")
+        # 不抛出异常，允许应用继续运行
+        # 实际使用时需要配置正确的数据库连接

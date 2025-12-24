@@ -32,31 +32,62 @@ templates_dir = BASE_DIR / "templates"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-# 初始化数据库
-init_db()
-
-# 创建必要的目录
+# 创建必要的目录（延迟到启动时创建，避免Vercel环境问题）
 UPLOAD_DIR = Path("data/documents")
 REPORT_DIR = Path("data/reports")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @app.on_event("startup")
 async def startup_event():
     """启动事件"""
     print("技术方案审核AI助手系统启动中...")
+    
+    try:
+        # 创建必要的目录
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        REPORT_DIR.mkdir(parents=True, exist_ok=True)
+        print("✓ 目录创建成功")
+    except Exception as e:
+        print(f"⚠ 目录创建警告: {str(e)}")
+        # 在Vercel环境中，某些目录可能无法创建，但不影响基本功能
+    
+    try:
+        # 初始化数据库（延迟初始化，避免模块导入时失败）
+        init_db()
+        print("✓ 数据库初始化成功")
+    except Exception as e:
+        print(f"⚠ 数据库初始化警告: {str(e)}")
+        # 在Vercel环境中，如果使用PostgreSQL，需要配置DATABASE_URL
+        # SQLite在Vercel中可能无法正常工作（文件系统只读）
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """根路径 - 返回首页"""
-    index_file = templates_dir / "index.html"
-    if index_file.exists():
-        with open(index_file, 'r', encoding='utf-8') as f:
-            return HTMLResponse(content=f.read())
-    else:
-        return HTMLResponse(content="<h1>页面未找到</h1><p>请确保 templates/index.html 文件存在</p>")
+    try:
+        index_file = templates_dir / "index.html"
+        if index_file.exists():
+            with open(index_file, 'r', encoding='utf-8') as f:
+                return HTMLResponse(content=f.read())
+        else:
+            # 如果文件不存在，返回简单的HTML
+            return HTMLResponse(content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>技术方案审核AI助手系统</title></head>
+            <body>
+                <h1>技术方案审核AI助手系统</h1>
+                <p>系统正在启动中，请稍候...</p>
+                <p><a href="/api/status">查看API状态</a></p>
+            </body>
+            </html>
+            """)
+    except Exception as e:
+        # 如果读取文件失败，返回错误页面
+        return HTMLResponse(
+            content=f"<h1>系统错误</h1><p>无法加载页面: {str(e)}</p>",
+            status_code=500
+        )
 
 
 @app.get("/api/status")
@@ -132,10 +163,23 @@ async def upload_document(
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
     
-    # 保存文件
-    file_path = UPLOAD_DIR / f"{project_id}_{file.filename}"
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # 保存文件（Vercel环境中需要使用临时目录或云存储）
+    try:
+        # 尝试使用配置的目录
+        file_path = UPLOAD_DIR / f"{project_id}_{file.filename}"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        # 如果失败，使用系统临时目录
+        import tempfile
+        temp_dir = Path(tempfile.gettempdir()) / "uploads"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        file_path = temp_dir / f"{project_id}_{file.filename}"
+    
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"文件保存失败: {str(e)}")
     
     # 创建文档记录
     document = Document(
@@ -279,9 +323,14 @@ async def review_document(
         db.commit()
         db.refresh(review_record)
         
-        # 保存报告文件
-        report_file = REPORT_DIR / f"report_{review_record.id}.json"
-        report_generator.export_to_json(report, str(report_file))
+        # 保存报告文件（Vercel环境中可能需要使用临时目录）
+        try:
+            report_file = REPORT_DIR / f"report_{review_record.id}.json"
+            report_file.parent.mkdir(parents=True, exist_ok=True)
+            report_generator.export_to_json(report, str(report_file))
+        except Exception as e:
+            # 如果保存失败，记录但不影响返回结果
+            print(f"报告文件保存警告: {str(e)}")
         
         return {
             "code": 200,
@@ -644,8 +693,16 @@ async def get_review_report(
     report = report_generator.generate_report(review.review_result, project_info)
     
     if format == "text":
-        report_file = REPORT_DIR / f"report_{review_id}.txt"
-        report_generator.export_to_text(report, str(report_file))
+        try:
+            report_file = REPORT_DIR / f"report_{review_id}.txt"
+            report_file.parent.mkdir(parents=True, exist_ok=True)
+            report_generator.export_to_text(report, str(report_file))
+        except Exception as e:
+            # 如果保存失败，使用临时目录
+            import tempfile
+            temp_dir = Path(tempfile.gettempdir())
+            report_file = temp_dir / f"report_{review_id}.txt"
+            report_generator.export_to_text(report, str(report_file))
         return {
             "code": 200,
             "message": "报告已生成",
