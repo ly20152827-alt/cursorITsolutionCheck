@@ -93,10 +93,13 @@ async def root():
 @app.get("/api/status")
 async def status():
     """系统状态"""
+    import os
     return {
         "message": "技术方案审核AI助手系统",
         "version": "1.0.0",
-        "status": "运行中"
+        "status": "运行中",
+        "environment": os.getenv("VERCEL_ENV", "development"),
+        "database_configured": bool(os.getenv("DATABASE_URL"))
     }
 
 
