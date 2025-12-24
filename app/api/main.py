@@ -144,6 +144,21 @@ async def get_projects(
 ):
     """获取项目列表"""
     try:
+        # 测试数据库连接
+        try:
+            db.execute("SELECT 1")
+        except Exception as db_error:
+            print(f"数据库连接测试失败: {str(db_error)}")
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "code": 200,
+                    "message": "数据库未配置，返回空列表",
+                    "data": [],
+                    "warning": "请在Vercel项目设置中配置DATABASE_URL环境变量"
+                }
+            )
+        
         projects = db.query(Project).offset(skip).limit(limit).all()
         
         return {
@@ -163,9 +178,15 @@ async def get_projects(
         print(f"获取项目列表错误: {str(e)}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(
+        # 返回JSON格式的错误，而不是抛出异常
+        return JSONResponse(
             status_code=500,
-            detail=f"获取项目列表失败: {str(e)}"
+            content={
+                "code": 500,
+                "message": "获取项目列表失败",
+                "detail": str(e),
+                "data": []
+            }
         )
 
 
