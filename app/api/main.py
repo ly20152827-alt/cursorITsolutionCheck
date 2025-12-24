@@ -146,7 +146,8 @@ async def get_projects(
     try:
         # 测试数据库连接
         try:
-            db.execute("SELECT 1")
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
         except Exception as db_error:
             print(f"数据库连接测试失败: {str(db_error)}")
             return JSONResponse(
