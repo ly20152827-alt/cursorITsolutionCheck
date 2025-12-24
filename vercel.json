@@ -17,12 +17,6 @@
   ],
   "env": {
     "PYTHON_VERSION": "3.10"
-  },
-  "functions": {
-    "api/app.py": {
-      "memory": 3008,
-      "maxDuration": 30
-    }
   }
 }
 

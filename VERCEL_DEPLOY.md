@@ -45,8 +45,10 @@ LOG_LEVEL=INFO
 
 `vercel.json` 已配置：
 - Python 3.10
-- 函数内存：3008MB
-- 最大执行时间：30秒
+- FastAPI入口点：`api/app.py`
+- Lambda大小限制：50MB
+
+**注意**：函数内存和执行时间限制需要在Vercel项目设置中配置，不能与`builds`属性同时使用。
 
 ## 注意事项
 
