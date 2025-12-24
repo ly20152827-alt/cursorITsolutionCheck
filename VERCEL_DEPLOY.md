@@ -31,6 +31,23 @@ LLM_BASE_URL=https://api.deepseek.com/v1
 LOG_LEVEL=INFO
 ```
 
+## 构建优化
+
+### 内存优化
+
+已优化 `requirements.txt`，移除了重型依赖：
+- ❌ `sentence-transformers` - 会安装PyTorch等大型依赖（~2GB），导致构建时内存溢出
+- ❌ `langchain` - 包含多个大型依赖
+
+这些依赖已移至 `requirements-optional.txt`，仅在本地开发时需要安装。
+
+### 构建配置
+
+`vercel.json` 已配置：
+- Python 3.10
+- 函数内存：3008MB
+- 最大执行时间：30秒
+
 ## 注意事项
 
 ### 1. 数据库

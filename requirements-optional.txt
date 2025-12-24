@@ -1,0 +1,12 @@
+# 可选依赖（本地开发使用，Vercel部署时不安装）
+# 这些依赖体积较大，会导致Vercel构建时内存溢出
+
+# 向量数据库和嵌入模型（如需要向量检索功能）
+# sentence-transformers==2.2.2
+
+# LangChain框架（如需要高级AI功能）
+# langchain==0.0.340
+
+# 安装方式（本地开发）：
+# pip install -r requirements.txt -r requirements-optional.txt
+
