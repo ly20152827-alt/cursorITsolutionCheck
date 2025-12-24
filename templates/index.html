@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术方案审核AI助手系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-file-check"></i> 技术方案审核AI助手
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showHome()">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showProjects()">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showUpload()">上传文档</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showReviewPoints()">审核要点库</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid mt-4">
+        <!-- 首页 -->
+        <div id="home-section" class="content-section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <h1 class="display-4 mb-4">
+                                <i class="bi bi-file-check text-primary"></i>
+                            </h1>
+                            <h2 class="mb-4">技术方案审核AI助手系统</h2>
+                            <p class="lead text-muted mb-4">
+                                专为民航机场建设领域设计的智能审核工具<br>
+                                自动审核施工组织设计方案，提升审核效率
+                            </p>
+                            <div class="row mt-5">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <i class="bi bi-upload display-4 text-primary"></i>
+                                            <h5 class="mt-3">文档上传</h5>
+                                            <p class="text-muted">支持Word、PDF等格式</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <i class="bi bi-robot display-4 text-success"></i>
+                                            <h5 class="mt-3">AI智能审核</h5>
+                                            <p class="text-muted">基于审核要点库自动分析</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <i class="bi bi-file-text display-4 text-info"></i>
+                                            <h5 class="mt-3">报告生成</h5>
+                                            <p class="text-muted">自动生成详细审核报告</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-primary btn-lg" onclick="showUpload()">
+                                    <i class="bi bi-plus-circle"></i> 开始审核
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 项目管理 -->
+        <div id="projects-section" class="content-section d-none">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-folder"></i> 项目管理</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <button class="btn btn-primary" onclick="showCreateProjectModal()">
+                                    <i class="bi bi-plus-circle"></i> 新建项目
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadProjects()">
+                                    <i class="bi bi-arrow-clockwise"></i> 刷新
+                                </button>
+                            </div>
+                            <div id="projects-list" class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>项目ID</th>
+                                            <th>项目名称</th>
+                                            <th>项目类型</th>
+                                            <th>状态</th>
+                                            <th>创建时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projects-table-body">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">加载中...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文档上传 -->
+        <div id="upload-section" class="content-section d-none">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-cloud-upload"></i> 上传文档</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="upload-form">
+                                <div class="mb-3">
+                                    <label for="project-select" class="form-label">选择项目</label>
+                                    <select class="form-select" id="project-select" required>
+                                        <option value="">请选择项目...</option>
+                                    </select>
+                                    <div class="form-text">
+                                        如果没有项目，请先<a href="#" onclick="showProjects()">创建项目</a>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="file-input" class="form-label">选择文档</label>
+                                    <input type="file" class="form-control" id="file-input" 
+                                           accept=".doc,.docx,.pdf" required>
+                                    <div class="form-text">支持格式：Word (.doc, .docx)、PDF (.pdf)</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-upload"></i> 上传并开始审核
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 审核进度 -->
+            <div id="review-progress" class="row mt-4 d-none">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> 审核进度</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%">0%</div>
+                            </div>
+                            <div id="progress-status" class="text-muted">准备中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 审核结果 -->
+            <div id="review-result" class="row mt-4 d-none">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-check-circle"></i> 审核完成</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h2 id="review-score" class="text-primary">0</h2>
+                                        <p class="text-muted">审核得分</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h2 id="severe-issues" class="text-danger">0</h2>
+                                        <p class="text-muted">严重问题</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h2 id="general-issues" class="text-warning">0</h2>
+                                        <p class="text-muted">一般问题</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h2 id="suggestions-count" class="text-info">0</h2>
+                                        <p class="text-muted">优化建议</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="review-summary" class="mb-3"></div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" onclick="viewFullReport()">
+                                    <i class="bi bi-file-text"></i> 查看完整报告
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 审核要点库 -->
+        <div id="review-points-section" class="content-section d-none">
+            <!-- 审核规范上传和管理区域 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="bi bi-upload"></i> 审核规范管理</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">上传审核规范/清单</label>
+                                    <input type="file" class="form-control" id="standard-file-input" 
+                                           accept=".doc,.docx,.pdf,.txt">
+                                    <div class="form-text">支持Word、PDF、文本格式</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">规范名称</label>
+                                    <input type="text" class="form-control" id="standard-name" 
+                                           placeholder="输入规范名称">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">规范分类</label>
+                                    <input type="text" class="form-control" id="standard-category" 
+                                           placeholder="如：安全规范、质量规范">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary w-100" onclick="uploadStandard()">
+                                        <i class="bi bi-upload"></i> 上传
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">选择AI模型（用于生成规则）</label>
+                                    <select class="form-select" id="ai-model-select">
+                                        <option value="">加载中...</option>
+                                    </select>
+                                    <div class="form-text">参考Dify平台模型选择模式</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">API密钥（可选）</label>
+                                    <input type="password" class="form-control" id="ai-api-key" 
+                                           placeholder="留空使用系统默认配置">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-success w-100" onclick="loadStandards()">
+                                        <i class="bi bi-arrow-clockwise"></i> 刷新
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-3" id="standards-list-container">
+                                <!-- 规范列表将在这里显示 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 规则管理区域 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-book"></i> 审核规则库</h5>
+                            <div>
+                                <button class="btn btn-sm btn-light" onclick="showCreateRuleModal()">
+                                    <i class="bi bi-plus-circle"></i> 人工编写规则
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="search-points" 
+                                           placeholder="搜索审核要点..." onkeyup="searchReviewPoints()">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="list-group" id="chapters-list" role="tablist">
+                                        <!-- 章节列表将在这里动态加载 -->
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="tab-content" id="points-content">
+                                        <!-- 审核要点内容将在这里动态加载 -->
+                                        <div class="text-center text-muted py-5">
+                                            <i class="bi bi-arrow-left display-4"></i>
+                                            <p class="mt-3">请从左侧选择章节查看审核要点</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建项目模态框 -->
+    <div class="modal fade" id="createProjectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">创建新项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-project-form">
+                        <div class="mb-3">
+                            <label for="project-name" class="form-label">项目名称</label>
+                            <input type="text" class="form-control" id="project-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="project-type" class="form-label">项目类型</label>
+                            <select class="form-select" id="project-type">
+                                <option value="施工前期">施工前期</option>
+                                <option value="竣工交付">竣工交付</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="createProject()">创建</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 报告查看模态框 -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">审核报告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="report-content" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- 报告内容将在这里动态加载 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建/编辑规则模态框 -->
+    <div class="modal fade" id="ruleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rule-modal-title">创建审核规则</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="rule-form">
+                        <input type="hidden" id="rule-id">
+                        <input type="hidden" id="rule-standard-id">
+                        <div class="mb-3">
+                            <label for="rule-name" class="form-label">规则名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="rule-name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="rule-type" class="form-label">规则类型</label>
+                                <select class="form-select" id="rule-type">
+                                    <option value="内容检查">内容检查</option>
+                                    <option value="章节检查">章节检查</option>
+                                    <option value="格式检查">格式检查</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="rule-severity" class="form-label">严重程度</label>
+                                <select class="form-select" id="rule-severity">
+                                    <option value="严重">严重</option>
+                                    <option value="一般" selected>一般</option>
+                                    <option value="建议">建议</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rule-required-content" class="form-label">必含内容（每行一个）</label>
+                            <textarea class="form-control" id="rule-required-content" rows="3" 
+                                      placeholder="每行输入一个必含内容项"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rule-pattern" class="form-label">规则匹配模式（正则表达式，可选）</label>
+                            <input type="text" class="form-control" id="rule-pattern" 
+                                   placeholder="例如：安全目标.*?(零事故|零伤亡)">
+                        </div>
+                        <div class="mb-3">
+                            <label for="rule-focus" class="form-label">审核重点</label>
+                            <textarea class="form-control" id="rule-focus" rows="2" 
+                                      placeholder="描述该规则的审核重点"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rule-active" checked>
+                                <label class="form-check-label" for="rule-active">
+                                    启用此规则
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRule()">保存规则</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 规范详情模态框 -->
+    <div class="modal fade" id="standardModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">审核规范详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="standard-content">
+                    <!-- 规范内容和规则列表将在这里显示 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="generateRulesFromStandard()">
+                        <i class="bi bi-robot"></i> AI生成规则
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
