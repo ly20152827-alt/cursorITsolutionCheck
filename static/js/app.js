@@ -198,25 +198,42 @@ async function createProject() {
     
     try {
         const result = await API.createProject(name, type);
+        console.log('创建项目响应:', result);
+        
         if (result.code === 200) {
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(document.getElementById('createProjectModal'));
-            modal.hide();
+            if (modal) {
+                modal.hide();
+            }
             
             // 重置表单
-            document.getElementById('create-project-form').reset();
+            const form = document.getElementById('create-project-form');
+            if (form) {
+                form.reset();
+            }
             
             // 显示成功消息
             showAlert('项目创建成功！', 'success');
             
-            // 等待一下再刷新，确保数据已保存
+            // 确保显示项目管理页面
+            showProjects();
+            
+            // 立即刷新项目列表，然后再次刷新确保数据同步
+            await loadProjects();
+            await loadProjectsForSelect();
+            
+            // 延迟再次刷新，确保数据库已完全提交
             setTimeout(async () => {
-                // 刷新项目列表（从服务器获取最新数据）
+                console.log('延迟刷新项目列表...');
                 await loadProjects();
                 await loadProjectsForSelect();
-            }, 300);
+            }, 500);
+        } else {
+            showAlert('创建项目失败: ' + (result.message || '未知错误'), 'danger');
         }
     } catch (error) {
+        console.error('创建项目错误:', error);
         showAlert('创建项目失败: ' + error.message, 'danger');
     }
 }
