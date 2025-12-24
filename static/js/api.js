@@ -1,9 +1,19 @@
 // API调用模块
-const API_BASE_URL = 'http://localhost:8000';
+// 根据当前环境自动设置API基础URL
+const API_BASE_URL = (() => {
+    // 如果是Vercel部署环境，使用相对路径
+    if (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('vercel.com')) {
+        return ''; // 使用相对路径，自动使用当前域名
+    }
+    // 本地开发环境
+    return 'http://localhost:8000';
+})();
 
 class API {
     static async request(endpoint, options = {}) {
-        const url = `${API_BASE_URL}${endpoint}`;
+        // 确保endpoint以/开头
+        const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const url = API_BASE_URL ? `${API_BASE_URL}${normalizedEndpoint}` : normalizedEndpoint;
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
@@ -29,11 +39,16 @@ class API {
 
     // 创建项目
     static async createProject(name, projectType = '施工前期') {
-        const params = new URLSearchParams({
-            name: name,
-            project_type: projectType
+        return await this.request('/api/projects', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: name,
+                project_type: projectType
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-        return await this.request(`/api/projects?${params}`);
     }
 
     // 获取项目列表

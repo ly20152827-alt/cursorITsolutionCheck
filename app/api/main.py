@@ -6,6 +6,7 @@ FastAPI主应用
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from jinja2 import Template
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -22,6 +23,15 @@ from app.services.rule_engine.rule_engine import RuleEngine
 from app.services.report_generator.report_generator import ReportGenerator
 
 app = FastAPI(title="技术方案审核AI助手系统", version="1.0.0")
+
+# 配置CORS（跨域资源共享）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 在生产环境中应该指定具体域名
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 配置静态文件
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -129,11 +139,23 @@ async def get_projects(
 
 @app.post("/api/projects")
 async def create_project(
-    name: str,
-    project_type: Optional[str] = None,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """创建项目"""
+    try:
+        # 尝试从JSON body获取数据
+        body = await request.json()
+        name = body.get("name")
+        project_type = body.get("project_type")
+    except:
+        # 如果失败，尝试从查询参数获取（向后兼容）
+        name = request.query_params.get("name")
+        project_type = request.query_params.get("project_type")
+    
+    if not name:
+        raise HTTPException(status_code=400, detail="项目名称不能为空")
+    
     project = Project(
         name=name,
         project_type=project_type or "施工前期",
