@@ -24,15 +24,36 @@ class API {
         
         try {
             const response = await fetch(url, config);
-            const data = await response.json();
             
+            // 检查响应状态
             if (!response.ok) {
-                throw new Error(data.detail || data.message || '请求失败');
+                // 尝试解析JSON错误响应
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    // 如果无法解析JSON，返回文本错误
+                    const text = await response.text();
+                    throw new Error(`服务器错误 (${response.status}): ${text.substring(0, 100)}`);
+                }
+                throw new Error(errorData.detail || errorData.message || `请求失败 (${response.status})`);
+            }
+            
+            // 尝试解析JSON响应
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                // 如果响应不是JSON，返回文本
+                const text = await response.text();
+                throw new Error(`响应格式错误: ${text.substring(0, 100)}`);
             }
             
             return data;
         } catch (error) {
             console.error('API请求错误:', error);
+            console.error('请求URL:', url);
+            console.error('请求配置:', config);
             throw error;
         }
     }

@@ -143,11 +143,19 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
     """获取数据库会话"""
-    db = SessionLocal()
     try:
-        yield db
-    finally:
-        db.close()
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"数据库连接错误: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # 在Vercel环境中，如果数据库未配置，返回空会话
+        # 实际应用中应该抛出异常
+        raise
 
 
 def init_db():

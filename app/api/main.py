@@ -33,6 +33,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 全局异常处理器
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """全局异常处理器，确保所有错误都返回JSON格式"""
+    import traceback
+    error_detail = str(exc)
+    error_traceback = traceback.format_exc()
+    
+    # 记录错误日志
+    print(f"全局异常捕获: {error_detail}")
+    print(f"错误堆栈: {error_traceback}")
+    
+    # 返回JSON格式的错误响应
+    return JSONResponse(
+        status_code=500,
+        content={
+            "code": 500,
+            "message": "服务器内部错误",
+            "detail": error_detail,
+            "path": str(request.url)
+        }
+    )
+
 # 配置静态文件
 BASE_DIR = Path(__file__).parent.parent.parent
 static_dir = BASE_DIR / "static"
@@ -120,21 +143,30 @@ async def get_projects(
     db: Session = Depends(get_db)
 ):
     """获取项目列表"""
-    projects = db.query(Project).offset(skip).limit(limit).all()
-    
-    return {
-        "code": 200,
-        "data": [
-            {
-                "project_id": p.id,
-                "name": p.name,
-                "project_type": p.project_type,
-                "status": p.status,
-                "create_time": p.create_time.isoformat() if p.create_time else None
-            }
-            for p in projects
-        ]
-    }
+    try:
+        projects = db.query(Project).offset(skip).limit(limit).all()
+        
+        return {
+            "code": 200,
+            "data": [
+                {
+                    "project_id": p.id,
+                    "name": p.name,
+                    "project_type": p.project_type,
+                    "status": p.status,
+                    "create_time": p.create_time.isoformat() if p.create_time else None
+                }
+                for p in projects
+            ]
+        }
+    except Exception as e:
+        print(f"获取项目列表错误: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取项目列表失败: {str(e)}"
+        )
 
 
 @app.post("/api/projects")
